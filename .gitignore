@@ -1,0 +1,15 @@
+# 데이터 파일
+*.csv
+*.xlsx
+*.parquet
+*.rds
+
+# R 캐시
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+
+# OS
+.DS_Store
+Thumbs.db
