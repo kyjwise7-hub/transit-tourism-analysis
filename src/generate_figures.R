@@ -5,6 +5,7 @@
 
 library(ggplot2)
 library(corrplot)
+library(ggrepel)
 
 # ── 데이터 로드 ──────────────────────────────────────────────
 
@@ -67,16 +68,62 @@ corrplot(b,
 dev.off()
 cat("Figure 2 saved.\n")
 
-# ── Figure 3: PCA 바이플롯 ───────────────────────────────────
+# ── Figure 3: PCA 바이플롯 (ggplot2) ────────────────────────
+
+# 관측치 좌표 (지자체)
+scores <- as.data.frame(pca_result$x[, 1:2])
+scores$지자체 <- rownames(travel)
+
+# 변수 로딩 (화살표) — 관측치 스케일에 맞게 조정
+scale_factor <- max(abs(scores[,1:2])) / max(abs(pca_result$rotation[,1:2])) * 0.55
+loadings <- as.data.frame(pca_result$rotation[, 1:2] * scale_factor)
+loadings$변수 <- c("log(공급도)", "평균요금", "접근소요시간", "환승대기시간", "환승이동시간")
+
+# 설명 분산 비율
+var_exp <- round(pca_result$sdev^2 / sum(pca_result$sdev^2) * 100, 1)
 
 png("../outputs/figures/03_pca_biplot.png",
-    width=760, height=680, res=110)
+    width=820, height=720, res=120)
 
-biplot(pca_result,
-       main="PCA Biplot — 교통 지표",
-       cex=c(0.8, 0.9),
-       col=c("steelblue", "tomato"),
-       xlabs=rownames(travel))
+ggplot() +
+  # 배경 원
+  annotate("path",
+           x = cos(seq(0, 2*pi, length.out=200)) * max(abs(scores[,1:2])) * 0.9,
+           y = sin(seq(0, 2*pi, length.out=200)) * max(abs(scores[,1:2])) * 0.9,
+           color="gray88", linewidth=0.4, linetype="dashed") +
+  # 십자선
+  geom_hline(yintercept=0, color="gray80", linewidth=0.4) +
+  geom_vline(xintercept=0, color="gray80", linewidth=0.4) +
+  # 변수 화살표
+  geom_segment(data=loadings,
+               aes(x=0, y=0, xend=PC1, yend=PC2),
+               arrow=arrow(length=unit(0.22,"cm"), type="closed"),
+               color="#E53935", linewidth=0.75) +
+  # 변수 레이블
+  geom_label(data=loadings,
+             aes(x=PC1*1.18, y=PC2*1.18, label=변수),
+             color="#B71C1C", fill="white", size=3.1,
+             label.size=0.2, label.padding=unit(0.15,"lines")) +
+  # 지자체 점
+  geom_point(data=scores,
+             aes(x=PC1, y=PC2),
+             color="#1565C0", size=2.4, alpha=0.85) +
+  # 지자체 레이블 (겹침 방지)
+  geom_text_repel(data=scores,
+                  aes(x=PC1, y=PC2, label=지자체),
+                  color="#1A237E", size=2.9,
+                  max.overlaps=20,
+                  box.padding=0.4, point.padding=0.2,
+                  segment.color="gray70", segment.size=0.3) +
+  labs(title="PCA Biplot — 교통 지표",
+       x=paste0("PC1  (", var_exp[1], "%)"),
+       y=paste0("PC2  (", var_exp[2], "%)"),
+       caption="빨간 화살표: 교통 지표 로딩 방향  |  파란 점: 광역지자체") +
+  theme_minimal(base_size=11) +
+  theme(plot.title=element_text(face="bold", hjust=0.5, size=13),
+        plot.caption=element_text(color="gray55", size=8, hjust=0.5),
+        panel.grid=element_blank(),
+        axis.title=element_text(color="gray40"))
 
 dev.off()
 cat("Figure 3 saved.\n")
