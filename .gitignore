@@ -2,6 +2,7 @@
 *.xlsx
 *.parquet
 *.rds
+*.csv
 
 # R 캐시
 .Rhistory
