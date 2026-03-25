@@ -136,7 +136,7 @@ install.packages(c("MASS", "corrplot", "ggplot2", "aplpack", "coin"))
 
 ## 작성자
 
-**김예지** — 강원대학교 정보통계학과
+**김예지** 
 
 - GitHub: [kyjwise7-hub](https://github.com/kyjwise7-hub)
 - Portfolio: [kyjwise7.oopy.io](https://kyjwise7.oopy.io)
